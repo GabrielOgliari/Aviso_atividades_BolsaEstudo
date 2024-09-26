@@ -4,6 +4,9 @@ import time
 import json
 import os
 import asyncio
+from flask import Flask
+
+app = Flask(__name__)
 
 # Configurações do Telegram
 BOT_TOKEN = '7514578178:AAGXKsSqf8bY2GUhG5F32XADph_MZ5CJrzc'
@@ -69,5 +72,10 @@ async def main():
             await send_message_to_telegram(f'O texto "PUG" foi encontrado no site! Texto completo:\n\n{texto_encontrado}')
         time.sleep(5)  # Espera 5 minutos antes de verificar novamente
 
-if __name__ == '__main__':
+@app.route('/')
+def hello_world():
     asyncio.run(main())
+
+if __name__ == '__main__':
+    app.run()
+    # asyncio.run(main())
