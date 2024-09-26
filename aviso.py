@@ -82,11 +82,11 @@ async def send_message_to_telegram(text):
         logger.error(f'Erro ao enviar mensagem para o Telegram: {e}')
 
 # Configuração do agendador assíncrono
-scheduler.add_job(verificar_site, 'interval', minutes=1)
+scheduler.add_job(verificar_site, 'interval', minutes=1) 
 scheduler.start()
 
 # Iniciar o loop de eventos
-loop = asyncio.get_event_loop()
+loop = asyncio.get_event_loop() 
 
 # Rota principal
 @app.route('/')
