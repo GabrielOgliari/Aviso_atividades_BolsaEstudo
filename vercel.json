@@ -1,13 +1,15 @@
 {
-    "build": {
-      "src": "aviso.py",
-      "use": "@vercel/python"
-    },
-    "routes": [
+  "version": 2,
+  "builds": [
       {
-        "src": "/(.*)",
-        "dest": "aviso.py"
+          "src": "aviso.py",
+          "use": "@vercel/python"
       }
-    ]
-  }
-  
+  ],
+  "routes": [
+      {
+          "src": "/(.*)",
+          "dest": "aviso.py"
+      }
+  ]
+}
