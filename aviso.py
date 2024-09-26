@@ -1,16 +1,27 @@
 import requests
 from telegram import Bot
-import time
 import json
 import os
-import asyncio
 from flask import Flask
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from logging import getLogger, StreamHandler, INFO
+import asyncio
 
 app = Flask(__name__)
 
-# Configurações do Telegram
+# Configurações do logger
+logger = getLogger(__name__)
+logger.setLevel(INFO)
+logger.addHandler(StreamHandler())
+
+# Configurações do Telegram (usar variáveis de ambiente)
 BOT_TOKEN = '7514578178:AAGXKsSqf8bY2GUhG5F32XADph_MZ5CJrzc'
 CHAT_ID = '5782098350'
+
+
+if not BOT_TOKEN or not CHAT_ID:
+    logger.error("BOT_TOKEN e CHAT_ID devem ser definidos nas variáveis de ambiente.")
+    exit(1)
 
 # URL a ser monitorada
 URL = 'https://eventos.unochapeco.edu.br/eventos/'
@@ -42,40 +53,65 @@ def save_notified_response(response_text):
         json.dump(notified_responses, file)
 
 # Função para verificar a presença do texto específico nos resultados da resposta
-def verificar_site():
-    response = requests.post(URL, json=payload)
-    if response.status_code == 200:
-        response_text = response.text
-        notified_responses = load_notified_responses()
+async def verificar_site():
+    try:
+        response = requests.post(URL, json=payload)
+        if response.status_code == 200:
+            response_text = response.text
+            notified_responses = load_notified_responses()
 
-        # Verifica se a resposta já foi notificada
-        if response_text not in notified_responses:
-            if "PUG" in response_text:  # Verifica se o texto "PUG" está na resposta
-                save_notified_response(response_text)
-                return response_text  # Retorna o texto completo encontrado
-    return None
+            # Verifica se a resposta já foi notificada
+            if response_text not in notified_responses:
+                if "PUG" in response_text:
+                    save_notified_response(response_text)
+                    logger.info('Texto "PUG" encontrado no site.')
+                    await send_message_to_telegram('O texto "PUG" foi encontrado no site!')
+                else:
+                    logger.info('Texto "PUG" não encontrado na resposta.')
+            else:
+                logger.info('Resposta já notificada anteriormente.')
+        else:
+            logger.error(f"Falha ao acessar o site. Status code: {response.status_code}")
+    except Exception as e:
+        logger.error(f"Erro ao verificar o site: {e}")
 
 # Função para enviar uma mensagem no Telegram
 async def send_message_to_telegram(text):
-    print(text)
     try:
         bot = Bot(token='8069837006:AAFhgqqv0SNkzUDLgBEgpRKFAy_Ev5WR59A')
-        await bot.send_message(chat_id='5782098350', text='nova atividade')
-        return True
+        await bot.send_message(chat_id='5782098350', text='text')
+        logger.info('Mensagem enviada para o Telegram.')
     except Exception as e:
-        print(f'Erro ao enviar mensagem para o telegram: {e}')
+        logger.error(f'Erro ao enviar mensagem para o Telegram: {e}')
 
-async def main():
-    while True:
-        texto_encontrado = verificar_site()
-        if texto_encontrado:
-            await send_message_to_telegram(f'O texto "PUG" foi encontrado no site! Texto completo:\n\n{texto_encontrado}')
-        time.sleep(5)  # Espera 5 minutos antes de verificar novamente
+# Configuração do agendador assíncrono
+scheduler = AsyncIOScheduler()
+scheduler.add_job(verificar_site, 'interval', minutes=5)
+scheduler.start()
 
+# Iniciar o loop de eventos
+loop = asyncio.get_event_loop()
+
+# Rota principal
 @app.route('/')
-def hello_world():
-    asyncio.run(main())
+def home():
+    return "Aplicativo Flask está em execução."
+
+# Encerrar o agendador ao finalizar o aplicativo
+import atexit
+atexit.register(lambda: scheduler.shutdown())
 
 if __name__ == '__main__':
-    app.run()
-    # asyncio.run(main())
+    # Executa o aplicativo Flask no loop de eventos existente
+    from threading import Thread
+
+    def run_flask():
+        app.run(use_reloader=False)
+
+    flask_thread = Thread(target=run_flask)
+    flask_thread.start()
+
+    try:
+        loop.run_forever()
+    except (KeyboardInterrupt, SystemExit):
+        pass
