@@ -6,9 +6,9 @@ from flask import Flask
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from logging import getLogger, StreamHandler, INFO
 import asyncio
-
 from pytz import timezone
 
+# Configuração do agendador com timezone
 scheduler = AsyncIOScheduler(timezone=timezone('UTC'))
 
 app = Flask(__name__)
@@ -18,14 +18,7 @@ logger = getLogger(__name__)
 logger.setLevel(INFO)
 logger.addHandler(StreamHandler())
 
-# Configurações do Telegram (usar variáveis de ambiente)
-BOT_TOKEN = '7514578178:AAGXKsSqf8bY2GUhG5F32XADph_MZ5CJrzc'
-CHAT_ID = '5782098350'
 
-
-if not BOT_TOKEN or not CHAT_ID:
-    logger.error("BOT_TOKEN e CHAT_ID devem ser definidos nas variáveis de ambiente.")
-    exit(1)
 
 # URL a ser monitorada
 URL = 'https://eventos.unochapeco.edu.br/eventos/'
@@ -69,7 +62,7 @@ async def verificar_site():
                 if "PUG" in response_text:
                     save_notified_response(response_text)
                     logger.info('Texto "PUG" encontrado no site.')
-                    await send_message_to_telegram('O texto "PUG" foi encontrado no site!')
+                    await send_message_to_telegram(f'O texto "PUG" foi encontrado no site!')
                 else:
                     logger.info('Texto "PUG" não encontrado na resposta.')
             else:
@@ -89,7 +82,6 @@ async def send_message_to_telegram(text):
         logger.error(f'Erro ao enviar mensagem para o Telegram: {e}')
 
 # Configuração do agendador assíncrono
-scheduler = AsyncIOScheduler()
 scheduler.add_job(verificar_site, 'interval', minutes=5)
 scheduler.start()
 
