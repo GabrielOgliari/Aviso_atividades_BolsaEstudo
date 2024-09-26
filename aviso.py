@@ -76,7 +76,7 @@ async def verificar_site():
 async def send_message_to_telegram(text):
     try:
         bot = Bot(token='8069837006:AAFhgqqv0SNkzUDLgBEgpRKFAy_Ev5WR59A')
-        await bot.send_message(chat_id='5782098350', text='text')
+        await bot.send_message(chat_id='5782098350', text=text)
         logger.info('Mensagem enviada para o Telegram.')
     except Exception as e:
         logger.error(f'Erro ao enviar mensagem para o Telegram: {e}')
