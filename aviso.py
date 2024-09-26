@@ -7,6 +7,10 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from logging import getLogger, StreamHandler, INFO
 import asyncio
 
+from pytz import timezone
+
+scheduler = AsyncIOScheduler(timezone=timezone('UTC'))
+
 app = Flask(__name__)
 
 # Configurações do logger
