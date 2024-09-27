@@ -2,7 +2,7 @@ import requests
 from telegram import Bot
 import json
 import os
-from flask import Flask
+from flask import Flask, jsonify
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from logging import getLogger, StreamHandler, INFO
 import asyncio
@@ -13,12 +13,22 @@ scheduler = AsyncIOScheduler(timezone=timezone('UTC'))
 
 app = Flask(__name__)
 
+# Lista para armazenar os logs
+log_storage = []
+
 # Configurações do logger
 logger = getLogger(__name__)
 logger.setLevel(INFO)
-logger.addHandler(StreamHandler())
 
+# Criar um StreamHandler que imprime para o console e armazena na lista
+handler = StreamHandler()
+handler.setLevel(INFO)
+logger.addHandler(handler)
 
+# Função para armazenar e exibir logs
+def log_message(message):
+    logger.info(message)
+    log_storage.append(message)  # Armazena o log na lista
 
 # URL a ser monitorada
 URL = 'https://eventos.unochapeco.edu.br/eventos/'
@@ -61,37 +71,42 @@ async def verificar_site():
             if response_text not in notified_responses:
                 if "PUG" in response_text:
                     save_notified_response(response_text)
-                    logger.info('Texto "PUG" encontrado no site.')
+                    log_message('Texto "PUG" encontrado no site.')
                     await send_message_to_telegram(f'O texto "PUG" foi encontrado no site!')
                 else:
-                    logger.info('Texto "PUG" não encontrado na resposta.')
+                    log_message('Texto "PUG" não encontrado na resposta.')
             else:
-                logger.info('Resposta já notificada anteriormente.')
+                log_message('Resposta já notificada anteriormente.')
         else:
-            logger.error(f"Falha ao acessar o site. Status code: {response.status_code}")
+            log_message(f"Falha ao acessar o site. Status code: {response.status_code}")
     except Exception as e:
-        logger.error(f"Erro ao verificar o site: {e}")
+        log_message(f"Erro ao verificar o site: {e}")
 
 # Função para enviar uma mensagem no Telegram
 async def send_message_to_telegram(text):
     try:
         bot = Bot(token='8069837006:AAFhgqqv0SNkzUDLgBEgpRKFAy_Ev5WR59A')
-        await bot.send_message(chat_id='5782098350', text='nova atividade')
-        logger.info('Mensagem enviada para o Telegram.')
+        await bot.send_message(chat_id='5782098350', text=text)
+        log_message('Mensagem enviada para o Telegram.')
     except Exception as e:
-        logger.error(f'Erro ao enviar mensagem para o Telegram: {e}')
+        log_message(f'Erro ao enviar mensagem para o Telegram: {e}')
 
 # Configuração do agendador assíncrono
-scheduler.add_job(verificar_site, 'interval', minutes=1) 
+scheduler.add_job(verificar_site, 'interval', minutes=1)
 scheduler.start()
 
 # Iniciar o loop de eventos
-loop = asyncio.get_event_loop() 
+loop = asyncio.get_event_loop()
 
 # Rota principal
 @app.route('/')
 def home():
     return "Aplicativo Flask está em execução."
+
+# Rota para exibir logs
+@app.route('/logs', methods=['GET'])
+def get_logs():
+    return jsonify(log_storage)
 
 # Encerrar o agendador ao finalizar o aplicativo
 import atexit
