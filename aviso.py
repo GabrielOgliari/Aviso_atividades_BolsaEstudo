@@ -30,6 +30,8 @@ def log_message(message):
     logger.info(message)
     log_storage.append(message)  # Armazena o log na lista
 
+
+
 # URL a ser monitorada
 URL = 'https://eventos.unochapeco.edu.br/eventos/'
 
@@ -71,32 +73,32 @@ async def verificar_site():
             if response_text not in notified_responses:
                 if "PUG" in response_text:
                     save_notified_response(response_text)
-                    log_message('Texto "PUG" encontrado no site.')
+                    logger.info('Texto "PUG" encontrado no site.')
                     await send_message_to_telegram(f'O texto "PUG" foi encontrado no site!')
                 else:
-                    log_message('Texto "PUG" não encontrado na resposta.')
+                    logger.info('Texto "PUG" não encontrado na resposta.')
             else:
-                log_message('Resposta já notificada anteriormente.')
+                logger.info('Resposta já notificada anteriormente.')
         else:
-            log_message(f"Falha ao acessar o site. Status code: {response.status_code}")
+            logger.error(f"Falha ao acessar o site. Status code: {response.status_code}")
     except Exception as e:
-        log_message(f"Erro ao verificar o site: {e}")
+        logger.error(f"Erro ao verificar o site: {e}")
 
 # Função para enviar uma mensagem no Telegram
 async def send_message_to_telegram(text):
     try:
         bot = Bot(token='8069837006:AAFhgqqv0SNkzUDLgBEgpRKFAy_Ev5WR59A')
-        await bot.send_message(chat_id='5782098350', text=text)
-        log_message('Mensagem enviada para o Telegram.')
+        await bot.send_message(chat_id='5782098350', text='nova atividade')
+        logger.info('Mensagem enviada para o Telegram.')
     except Exception as e:
-        log_message(f'Erro ao enviar mensagem para o Telegram: {e}')
+        logger.error(f'Erro ao enviar mensagem para o Telegram: {e}')
 
 # Configuração do agendador assíncrono
-scheduler.add_job(verificar_site, 'interval', minutes=1)
+scheduler.add_job(verificar_site, 'interval', minutes=1) 
 scheduler.start()
 
 # Iniciar o loop de eventos
-loop = asyncio.get_event_loop()
+loop = asyncio.get_event_loop() 
 
 # Rota principal
 @app.route('/')
