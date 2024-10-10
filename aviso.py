@@ -59,7 +59,7 @@ async def main():
         if url:
             link = f'https://eventos.unochapeco.edu.br/{url}'
             await send_message_to_telegram(f'nova atividade encontrada:\n\n{link}')
-        # time.sleep(300)  # Espera 5 minutos antes de verificar novamente
+        time.sleep(300)  # Espera 5 minutos antes de verificar novamente
 
 
 if __name__ == '__main__':
