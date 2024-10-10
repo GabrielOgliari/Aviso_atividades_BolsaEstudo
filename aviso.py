@@ -57,7 +57,7 @@ async def send_message_to_telegram(text):
     print(text)
     try:
         bot = Bot(token='8069837006:AAFhgqqv0SNkzUDLgBEgpRKFAy_Ev5WR59A')
-        await bot.send_message(chat_id='5782098350', text='Nova atividade encontrada!')
+        await bot.send_message(chat_id='-4503091244', text='Nova atividade encontrada!')
         return True
     except Exception as e:
         print(f'Erro ao enviar mensagem para o telegram: {e}')
