@@ -54,7 +54,6 @@ def verificar_site():
 
 # Função para enviar uma mensagem no Telegram
 async def send_message_to_telegram(text):
-    print(text)
     try:
         bot = Bot(token='8069837006:AAFhgqqv0SNkzUDLgBEgpRKFAy_Ev5WR59A')
         await bot.send_message(chat_id='-4503091244', text='Nova atividade encontrada!')
